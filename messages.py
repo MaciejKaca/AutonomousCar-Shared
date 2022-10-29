@@ -32,6 +32,7 @@ def deserialize_message(message):
     elif message_type == MessageType.JOYSTICK:
         joystick_data = JoystickData()
         joystick_data.deserialize(message_dict)
+        return joystick_data
 
 class DataMessage:
     def __init__(self):
@@ -95,16 +96,19 @@ class JoystickData(DataMessage):
 
         def __set_data(self, data : dict):
             self.event_type = int(data.get('event_type'))
-            self.value = int(data.get('value'))
-            self.value = int(data.get('axis'))
-            self.value = int(data.get('button'))
+            self.axis = int(data.get('axis'))
+            if str(data.get('value')).find(".") == -1:
+                self.value = int(data.get('value'))
+            else:
+                self.value = float(data.get('value'))
+            self.button = int(data.get('button'))
 
         def __get_data(self):
             data = {}
             data['event_type'] = str(self.event_type)
             data['value'] = str(self.value)
             data['axis'] = str(self.axis)
-            data['button'] = str(self.axis)
+            data['button'] = str(self.button)
             return data
 
         def serialize(self) -> str:
