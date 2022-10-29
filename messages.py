@@ -1,7 +1,6 @@
 from enum import Enum
 import time
 import json
-from pygame import JOYBUTTONDOWN, event
 
 class MessageType(Enum):
     NULL = 1
@@ -9,6 +8,7 @@ class MessageType(Enum):
     ANGLE = 3
     VOLTAGE = 4
     JOYSTICK = 5
+    HEARTBEAT = 6
 
 class MessageFields(Enum):
     MESSAGE_TYPE = 1
@@ -25,28 +25,30 @@ def deserialize_message(message):
     message_dict = dict(json.loads(message))
     message_type = MessageType(message_dict.get(MessageFields.MESSAGE_TYPE.name))
 
+    data = DataMessage()
     if message_type == MessageType.SPEED:
-        speed_data = SpeedData()
-        speed_data.deserialize(message_dict)
-        return speed_data
+        data = SpeedData()
     elif message_type == MessageType.JOYSTICK:
-        joystick_data = JoystickData()
-        joystick_data.deserialize(message_dict)
-        return joystick_data
+        data = JoystickData()
+    elif message_type == MessageType.HEARTBEAT:
+        data = Heartbeat()
+    
+    data.deserialize(message_dict)
+    return data
+
+def get_time():
+    return round(time.time() * 1000)
 
 class DataMessage:
     def __init__(self):
         self.message_type = MessageType.NULL
-        self.sent_time = self.get_time()
+        self.sent_time = get_time()
         pass 
-
-    def get_time():
-        return round(time.time() * 1000)
 
     def serialize(self) -> str:
         pass
 
-    def deserialize(self):
+    def deserialize(self, message):
         pass
 
     def __get_data(self) -> dict:
@@ -60,7 +62,7 @@ class SpeedData(DataMessage):
         self.speed = 0
         self.direction = Direction.FORWARD
         self.message_type = MessageType.SPEED
-        self.sent_time = DataMessage.get_time()
+        self.sent_time = get_time()
 
     def __get_data(self):
         data = {}
@@ -92,7 +94,7 @@ class JoystickData(DataMessage):
             self.axis = 0
             self.button = 0
             self.message_type = MessageType.JOYSTICK
-            self.sent_time = DataMessage.get_time()
+            self.sent_time = get_time()
 
         def __set_data(self, data : dict):
             self.event_type = int(data.get('event_type'))
@@ -123,3 +125,30 @@ class JoystickData(DataMessage):
 
             data = dict(message.get(MessageFields.DATA.name))
             self.__set_data(data)
+
+class Heartbeat(DataMessage):
+    def __init__(self):
+        self.system_id = 0
+        self.message_type = MessageType.HEARTBEAT
+        self.sent_time = get_time()
+
+    def __get_data(self):
+        data = {}
+        data['system_id'] = self.system_id
+        return data
+
+    def __set_data(self, data : dict):
+        self.system_id = int(data.get('system_id'))
+
+    def serialize(self) -> str:
+        data = self.__get_data()
+        message = {MessageFields.MESSAGE_TYPE.name : self.message_type.value, MessageFields.SENT_TIME.name: self.sent_time, MessageFields.DATA.name: data}
+
+        return json.dumps(message)
+
+    def deserialize(self, message):
+        self.message_type = MessageType(message.get(MessageFields.MESSAGE_TYPE.name))
+        self.sent_time = int(message.get(MessageFields.SENT_TIME.name))
+
+        data = dict(message.get(MessageFields.DATA.name))
+        self.__set_data(data)
