@@ -24,6 +24,15 @@ class Direction(Enum):
     BRAKE = 3
 
 
+class Property:
+    NAME: str = str()
+    value = 0
+
+    def __init__(self, name: str, value):
+        self.NAME = name
+        self.value = value
+
+
 def deserialize_message(message):
     message = message.decode("utf-8")
     message_dict = dict(json.loads(message))
@@ -47,8 +56,8 @@ def get_time():
 
 class DataMessage:
     def __init__(self):
-        self.message_type = MessageType.NULL
-        self.sent_time = get_time()
+        self.messageType = MessageType.NULL
+        self.sentTime = get_time()
         pass
 
     def _get_data(self) -> dict:
@@ -59,14 +68,14 @@ class DataMessage:
 
     def serialize(self) -> str:
         data = self._get_data()
-        message = {MessageFields.MESSAGE_TYPE.name: self.message_type.value,
-                   MessageFields.SENT_TIME.name: self.sent_time, MessageFields.DATA.name: data}
+        message = {MessageFields.MESSAGE_TYPE.name: self.messageType.value,
+                   MessageFields.SENT_TIME.name: self.sentTime, MessageFields.DATA.name: data}
 
         return json.dumps(message)
 
     def deserialize(self, message):
-        self.message_type = MessageType(message.get(MessageFields.MESSAGE_TYPE.name))
-        self.sent_time = int(message.get(MessageFields.SENT_TIME.name))
+        self.messageType = MessageType(message.get(MessageFields.MESSAGE_TYPE.name))
+        self.sentTime = int(message.get(MessageFields.SENT_TIME.name))
 
         data = dict(message.get(MessageFields.DATA.name))
         self._set_data(data)
@@ -75,61 +84,58 @@ class DataMessage:
 class SpeedData(DataMessage):
     def __init__(self):
         super().__init__()
-        self.speed = 0
-        self.direction = Direction.FORWARD
-        self.message_type = MessageType.SPEED
-        self.sent_time = get_time()
+        self.messageType = MessageType.SPEED
+        self.speed = Property("speed", 0)
+        self.direction = Property("direction", Direction.FORWARD)
 
     def _get_data(self) -> dict:
         data = dict()
-        data['speed'] = self.speed
-        data['direction'] = self.direction.value
+        data[self.speed.NAME] = str(self.speed.value)
+        data[self.direction.NAME] = str(self.direction.value)
         return data
 
     def _set_data(self, data: dict):
-        self.speed = int(data.get('speed'))
-        self.direction = Direction(int(data.get('direction')))
+        self.speed.value = int(data.get(self.speed.NAME))
+        self.direction.value = Direction(int(data.get(self.direction.NAME)))
 
 
 class JoystickData(DataMessage):
     def __init__(self):
         super().__init__()
-        self.event_type = 0
-        self.value = 0
-        self.axis = 0
-        self.button = 0
-        self.message_type = MessageType.JOYSTICK
-        self.sent_time = get_time()
+        self.messageType = MessageType.JOYSTICK
+        self.eventType = Property("eventType", 0)
+        self.value = Property("value", 0)
+        self.axis = Property("axis", 0)
+        self.button = Property("button", 0)
 
     def _set_data(self, data: dict):
-        self.event_type = int(data.get('event_type'))
-        self.axis = int(data.get('axis'))
-        if str(data.get('value')).find(".") == -1:
-            self.value = int(data.get('value'))
+        self.eventType.value = int(data.get(self.eventType.NAME))
+        self.axis.value = int(data.get(self.axis.NAME))
+        if str(data.get(self.value.NAME)).find(".") == -1:
+            self.value.value = int(data.get(self.value.NAME))
         else:
-            self.value = float(data.get('value'))
-        self.button = int(data.get('button'))
+            self.value.value = float(data.get(self.value.NAME))
+        self.button.value = int(data.get(self.button.NAME))
 
     def _get_data(self) -> dict:
         data = dict()
-        data['event_type'] = str(self.event_type)
-        data['value'] = str(self.value)
-        data['axis'] = str(self.axis)
-        data['button'] = str(self.button)
+        data[self.eventType.NAME] = str(self.eventType.value)
+        data[self.value.NAME] = str(self.value.value)
+        data[self.axis.NAME] = str(self.axis.value)
+        data[self.button.NAME] = str(self.button.value)
         return data
 
 
 class Heartbeat(DataMessage):
     def __init__(self):
         super().__init__()
-        self.system_id = 0
-        self.message_type = MessageType.HEARTBEAT
-        self.sent_time = get_time()
+        self.messageType = MessageType.HEARTBEAT
+        self.systemID = Property("systemID", 0)
 
     def _get_data(self) -> dict:
         data = dict()
-        data['system_id'] = self.system_id
+        data[self.systemID.NAME] = self.systemID.value
         return data
 
     def _set_data(self, data: dict):
-        self.system_id = int(data.get('system_id'))
+        self.systemID.value = int(data.get(self.systemID.NAME))
