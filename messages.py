@@ -46,6 +46,8 @@ def deserialize_message(message):
         data = JoystickData()
     elif message_type == MessageType.HEARTBEAT:
         data = Heartbeat()
+    elif message_type == MessageType.CURRENT:
+        data = CurrentData()
 
     data.deserialize(message_dict)
     return data
