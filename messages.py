@@ -10,6 +10,7 @@ class MessageType(Enum):
     VOLTAGE = 4
     JOYSTICK = 5
     HEARTBEAT = 6
+    CURRENT = 7
 
 
 class MessageFields(Enum):
@@ -139,3 +140,21 @@ class Heartbeat(DataMessage):
 
     def _set_data(self, data: dict):
         self.systemID.value = int(data.get(self.systemID.NAME))
+
+
+class CurrentData(DataMessage):
+    def __init__(self):
+        super().__init__()
+        self.messageType = MessageType.HEARTBEAT
+        self.voltage: Property = Property("voltage", 0)
+        self.current: Property = Property("current", 0)
+
+    def _get_data(self) -> dict:
+        data = dict()
+        data[self.voltage.NAME] = self.voltage.value
+        data[self.current.NAME] = self.current.value
+        return data
+
+    def _set_data(self, data: dict):
+        self.voltage.value = float(data.get(self.voltage.NAME))
+        self.current.value = float(data.get(self.current.NAME))
