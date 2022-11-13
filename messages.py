@@ -85,8 +85,8 @@ class SpeedData(DataMessage):
     def __init__(self):
         super().__init__()
         self.messageType = MessageType.SPEED
-        self.speed = Property("speed", 0)
-        self.direction = Property("direction", Direction.FORWARD)
+        self.speed: Property = Property("speed", 0)
+        self.direction: Property = Property("direction", Direction.FORWARD.value)
 
     def _get_data(self) -> dict:
         data = dict()
@@ -103,24 +103,24 @@ class JoystickData(DataMessage):
     def __init__(self):
         super().__init__()
         self.messageType = MessageType.JOYSTICK
-        self.eventType = Property("eventType", 0)
-        self.value = Property("value", 0)
-        self.axis = Property("axis", 0)
-        self.button = Property("button", 0)
+        self.eventType: Property = Property("eventType", 0)
+        self.inputValue: Property = Property("value", 0)
+        self.axis: Property = Property("axis", 0)
+        self.button: Property = Property("button", 0)
 
     def _set_data(self, data: dict):
         self.eventType.value = int(data.get(self.eventType.NAME))
         self.axis.value = int(data.get(self.axis.NAME))
-        if str(data.get(self.value.NAME)).find(".") == -1:
-            self.value.value = int(data.get(self.value.NAME))
+        if str(data.get(self.inputValue.NAME)).find(".") == -1:
+            self.inputValue.value = int(data.get(self.inputValue.NAME))
         else:
-            self.value.value = float(data.get(self.value.NAME))
+            self.inputValue.value = float(data.get(self.inputValue.NAME))
         self.button.value = int(data.get(self.button.NAME))
 
     def _get_data(self) -> dict:
         data = dict()
         data[self.eventType.NAME] = str(self.eventType.value)
-        data[self.value.NAME] = str(self.value.value)
+        data[self.inputValue.NAME] = str(self.inputValue.value)
         data[self.axis.NAME] = str(self.axis.value)
         data[self.button.NAME] = str(self.button.value)
         return data
@@ -130,7 +130,7 @@ class Heartbeat(DataMessage):
     def __init__(self):
         super().__init__()
         self.messageType = MessageType.HEARTBEAT
-        self.systemID = Property("systemID", 0)
+        self.systemID: Property = Property("systemID", 0)
 
     def _get_data(self) -> dict:
         data = dict()
