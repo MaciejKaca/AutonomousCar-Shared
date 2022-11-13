@@ -145,7 +145,7 @@ class Heartbeat(DataMessage):
 class CurrentData(DataMessage):
     def __init__(self):
         super().__init__()
-        self.messageType = MessageType.HEARTBEAT
+        self.messageType = MessageType.CURRENT
         self.voltage: Property = Property("voltage", 0)
         self.current: Property = Property("current", 0)
 
